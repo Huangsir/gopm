@@ -18,9 +18,9 @@ package main
 import (
 	"os"
 
-	"github.com/gpmgo/gopm/lib"
-	"github.com/gpmgo/gopm/modules/log"
-	"github.com/gpmgo/gopm/modules/setting"
+	"github.com/Huangsir/gopm/lib"
+	"github.com/Huangsir/gopm/modules/log"
+	"github.com/Huangsir/gopm/modules/setting"
 )
 
 func main() {

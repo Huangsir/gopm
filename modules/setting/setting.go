@@ -21,8 +21,9 @@ import (
 	"path"
 	"strings"
 
-	"github.com/gpmgo/gopm/modules/base"
-	"github.com/gpmgo/gopm/modules/goconfig"
+	"github.com/Huangsir/gopm/modules/base"
+	"github.com/Huangsir/gopm/modules/goconfig"
+	"github.com/scalingdata/gcfg"
 )
 
 type Error struct {
@@ -76,6 +77,10 @@ var (
 	Cfg             *goconfig.ConfigFile
 	PackageNameList = make(map[string]string)
 	LocalNodes      *goconfig.ConfigFile
+
+	// localize
+	LocalizeConfigFile string
+	Localizes          = make([]*goconfig.Localize, 0)
 
 	// TODO: configurable.
 	RootPathPairs = map[string]int{
@@ -199,6 +204,32 @@ func LoadLocalNodes() (err error) {
 func SaveLocalNodes() error {
 	if err := goconfig.SaveConfigFile(LocalNodes, LocalNodesFile); err != nil {
 		return fmt.Errorf("fail to save localnodes.list: %v", err)
+	}
+	return nil
+}
+
+func LoadLocalize() error {
+	if !base.IsFile(LocalizeConfigFile) {
+		os.MkdirAll(path.Dir(LocalizeConfigFile), os.ModePerm)
+		os.Create(LocalizeConfigFile)
+	}
+
+	data := struct {
+		Domain map[string]*struct {
+			Depth    int
+			Download string
+		}
+	}{}
+
+	if err := gcfg.ReadFileInto(&data, LocalizeConfigFile); err != nil {
+		return err
+	}
+	for domain, config := range data.Domain {
+		Localizes = append(Localizes, &goconfig.Localize{
+			Domain:    domain,
+			RootDepth: config.Depth,
+			Download:  config.Download,
+		})
 	}
 	return nil
 }

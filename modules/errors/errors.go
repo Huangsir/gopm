@@ -15,7 +15,7 @@
 package errors
 
 import (
-	"github.com/gpmgo/gopm/modules/setting"
+	"github.com/Huangsir/gopm/modules/setting"
 )
 
 type ErrDownload struct {

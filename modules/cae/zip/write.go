@@ -23,7 +23,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gpmgo/gopm/modules/cae"
+	"github.com/Huangsir/gopm/modules/cae"
 )
 
 // Switcher of printing trace information when pack and extract.

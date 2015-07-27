@@ -25,7 +25,7 @@ import (
 
 	"github.com/Unknwon/com"
 
-	"github.com/gpmgo/gopm/modules/setting"
+	"github.com/Huangsir/gopm/modules/setting"
 )
 
 func makeLink(srcPath, destPath string) error {

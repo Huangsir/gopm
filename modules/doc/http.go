@@ -22,8 +22,8 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/gpmgo/gopm/modules/log"
-	"github.com/gpmgo/gopm/modules/setting"
+	"github.com/Huangsir/gopm/modules/log"
+	"github.com/Huangsir/gopm/modules/setting"
 )
 
 var (

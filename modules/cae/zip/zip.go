@@ -24,7 +24,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gpmgo/gopm/modules/cae"
+	"github.com/Huangsir/gopm/modules/cae"
 )
 
 // A File represents a file or directory entry in archive.

@@ -23,12 +23,12 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/gpmgo/gopm/modules/base"
-	"github.com/gpmgo/gopm/modules/cli"
-	"github.com/gpmgo/gopm/modules/doc"
-	"github.com/gpmgo/gopm/modules/goconfig"
-	"github.com/gpmgo/gopm/modules/log"
-	"github.com/gpmgo/gopm/modules/setting"
+	"github.com/Huangsir/gopm/modules/base"
+	"github.com/Huangsir/gopm/modules/cli"
+	"github.com/Huangsir/gopm/modules/doc"
+	"github.com/Huangsir/gopm/modules/goconfig"
+	"github.com/Huangsir/gopm/modules/log"
+	"github.com/Huangsir/gopm/modules/setting"
 )
 
 // setup initializes and checks common environment variables.
@@ -118,6 +118,11 @@ func setup(ctx *cli.Context) (err error) {
 
 	setting.LocalNodesFile = path.Join(setting.HomeDir, ".gopm/data/localnodes.list")
 	if err = setting.LoadLocalNodes(); err != nil {
+		return err
+	}
+
+	setting.LocalizeConfigFile = path.Join(setting.HomeDir, ".gopm/data/localize.ini")
+	if err = setting.LoadLocalize(); err != nil {
 		return err
 	}
 	return nil

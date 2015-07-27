@@ -23,9 +23,9 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/gpmgo/gopm/modules/base"
-	"github.com/gpmgo/gopm/modules/log"
-	"github.com/gpmgo/gopm/modules/setting"
+	"github.com/Huangsir/gopm/modules/base"
+	"github.com/Huangsir/gopm/modules/log"
+	"github.com/Huangsir/gopm/modules/setting"
 )
 
 // ParseTarget guesses import path of current package
@@ -71,6 +71,12 @@ func GetRootPath(name string) string {
 		user := m[1]
 		repo := m[2]
 		return path.Join("gopkg.in", user, repo+"."+m[3])
+	}
+
+	for _, localize := range setting.Localizes {
+		if strings.HasPrefix(name, localize.Domain) {
+			return joinPath(name, localize.RootDepth)
+		}
 	}
 	return name
 }

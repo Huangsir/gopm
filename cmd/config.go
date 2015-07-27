@@ -17,9 +17,9 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/gpmgo/gopm/modules/cli"
-	"github.com/gpmgo/gopm/modules/errors"
-	"github.com/gpmgo/gopm/modules/setting"
+	"github.com/Huangsir/gopm/modules/cli"
+	"github.com/Huangsir/gopm/modules/errors"
+	"github.com/Huangsir/gopm/modules/setting"
 )
 
 var CmdConfig = cli.Command{

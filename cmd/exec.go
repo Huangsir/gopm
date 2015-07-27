@@ -15,8 +15,8 @@
 package cmd
 
 import (
-	"github.com/gpmgo/gopm/modules/cli"
-	"github.com/gpmgo/gopm/modules/errors"
+	"github.com/Huangsir/gopm/modules/cli"
+	"github.com/Huangsir/gopm/modules/errors"
 )
 
 var CmdExec = cli.Command{

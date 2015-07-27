@@ -27,11 +27,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gpmgo/gopm/modules/base"
-	"github.com/gpmgo/gopm/modules/cae/zip"
-	"github.com/gpmgo/gopm/modules/cli"
-	"github.com/gpmgo/gopm/modules/log"
-	"github.com/gpmgo/gopm/modules/setting"
+	"github.com/Huangsir/gopm/modules/base"
+	"github.com/Huangsir/gopm/modules/cae/zip"
+	"github.com/Huangsir/gopm/modules/cli"
+	"github.com/Huangsir/gopm/modules/goconfig"
+	"github.com/Huangsir/gopm/modules/log"
+	"github.com/Huangsir/gopm/modules/setting"
 )
 
 // service represents a source code control service.
@@ -401,6 +402,13 @@ func init() {
 
 // DownloadGopm downloads remote package from gopm registry.
 func (n *Node) DownloadGopm(ctx *cli.Context) error {
+	// Localsize repository
+	for _, localize := range setting.Localizes {
+		if strings.HasPrefix(n.RootPath, localize.Domain) {
+			return n.DownloadLocalRepository(ctx, localize)
+		}
+	}
+
 	// Fetch latest version, check if package has been changed.
 	if n.Type == BRANCH && n.IsEmptyVal() {
 		resp, err := http.Get(fmt.Sprintf("%s%s?pkgname=%s",
@@ -473,6 +481,23 @@ func (n *Node) DownloadGopm(ctx *cli.Context) error {
 	} else if err = os.Rename(path.Join(path.Dir(n.InstallPath), rootDir),
 		n.InstallPath); err != nil {
 		return fmt.Errorf("fail to rename directory: %v", err)
+	}
+	return nil
+}
+
+func (n *Node) DownloadLocalRepository(ctx *cli.Context, localize *goconfig.Localize) error {
+	var repoAddr string
+	switch localize.Download {
+	case "git+ssh":
+		repoAddr = fmt.Sprintf("git@%s:%s.git", localize.Domain, n.RootPath[len(localize.Domain)+1:])
+	}
+	downPath := path.Join(setting.HomeDir, ".gopm/repos", n.RootPath)
+	os.MkdirAll(downPath, os.ModePerm)
+	_, stderr, err := base.ExecCmdDir(downPath, "git", "clone", repoAddr)
+	if err != nil {
+		log.Error("", "Error occurs when 'git clone'")
+		log.Error("", "\t"+stderr)
+		return errors.New(stderr)
 	}
 	return nil
 }

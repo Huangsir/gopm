@@ -21,10 +21,10 @@ import (
 	"io"
 	"runtime"
 
-	"github.com/gpmgo/gopm/cmd"
-	"github.com/gpmgo/gopm/modules/cli"
-	"github.com/gpmgo/gopm/modules/log"
-	"github.com/gpmgo/gopm/modules/setting"
+	"github.com/Huangsir/gopm/cmd"
+	"github.com/Huangsir/gopm/modules/cli"
+	"github.com/Huangsir/gopm/modules/log"
+	"github.com/Huangsir/gopm/modules/setting"
 )
 
 const APP_VER = "0.8.6.1228 Beta"

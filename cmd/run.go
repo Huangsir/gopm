@@ -19,12 +19,12 @@ import (
 	"path"
 	"strings"
 
-	"github.com/gpmgo/gopm/modules/base"
-	"github.com/gpmgo/gopm/modules/cli"
-	"github.com/gpmgo/gopm/modules/doc"
-	"github.com/gpmgo/gopm/modules/errors"
-	"github.com/gpmgo/gopm/modules/log"
-	"github.com/gpmgo/gopm/modules/setting"
+	"github.com/Huangsir/gopm/modules/base"
+	"github.com/Huangsir/gopm/modules/cli"
+	"github.com/Huangsir/gopm/modules/doc"
+	"github.com/Huangsir/gopm/modules/errors"
+	"github.com/Huangsir/gopm/modules/log"
+	"github.com/Huangsir/gopm/modules/setting"
 )
 
 var CmdRun = cli.Command{
