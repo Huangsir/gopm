@@ -490,6 +490,10 @@ func (n *Node) DownloadLocalRepository(ctx *cli.Context, localize *goconfig.Loca
 	switch localize.Download {
 	case "git+ssh":
 		repoAddr = fmt.Sprintf("git@%s:%s.git", localize.Domain, n.RootPath[len(localize.Domain)+1:])
+	case "git+https":
+		repoAddr = fmt.Sprintf("https://%s", n.RootPath)
+	case "git+http":
+		repoAddr = fmt.Sprintf("http://%s", n.RootPath)
 	}
 	downPath := path.Join(setting.HomeDir, ".gopm/repos", n.RootPath)
 	os.MkdirAll(downPath, os.ModePerm)
