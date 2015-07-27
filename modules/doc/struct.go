@@ -495,9 +495,9 @@ func (n *Node) DownloadLocalRepository(ctx *cli.Context, localize *goconfig.Loca
 	case "git+http":
 		repoAddr = fmt.Sprintf("http://%s", n.RootPath)
 	}
-	downPath := path.Join(setting.HomeDir, ".gopm/repos", n.RootPath)
-	os.MkdirAll(downPath, os.ModePerm)
-	_, stderr, err := base.ExecCmdDir(downPath, "git", "clone", repoAddr)
+	downBaseDir := path.Dir(path.Join(setting.HomeDir, ".gopm/repos", n.RootPath))
+	os.MkdirAll(downBaseDir, os.ModePerm)
+	_, stderr, err := base.ExecCmdDir(downBaseDir, "git", "clone", repoAddr)
 	if err != nil {
 		log.Error("", "Error occurs when 'git clone'")
 		log.Error("", "\t"+stderr)
