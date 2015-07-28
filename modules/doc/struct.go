@@ -421,6 +421,15 @@ func (n *Node) DownloadGopm(ctx *cli.Context) error {
 			if err = json.NewDecoder(resp.Body).Decode(&apiErr); err != nil {
 				return fmt.Errorf("fail to decode response JSON: %v", err)
 			}
+			if apiErr.Error == "cannot match any service" {
+				// Maybe this is a local repository.
+				localRepo := &goconfig.Localize{
+					Domain:    n.RootPath[:strings.Index(n.RootPath, "/")],
+					RootDepth: 3,
+					Download:  "git+https",
+				}
+				return n.DownloadLocalRepository(ctx, localRepo)
+			}
 			return errors.New(apiErr.Error)
 		}
 		var apiResp ApiResponse

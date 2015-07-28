@@ -225,6 +225,9 @@ func LoadLocalize() error {
 		return err
 	}
 	for domain, config := range data.Domain {
+		if config.Depth <= 0 {
+			config.Depth = 3
+		}
 		Localizes = append(Localizes, &goconfig.Localize{
 			Domain:    domain,
 			RootDepth: config.Depth,
