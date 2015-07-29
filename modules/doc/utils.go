@@ -258,7 +258,8 @@ func ListImports(importPath, rootPath, vendorPath, srcPath, tags string, isTest 
 	}
 	pkg, err := ctxt.Import(importPath, srcPath, build.AllowBinary)
 	if err != nil {
-		if _, ok := err.(*build.NoGoError); !ok {
+		if _, ok := err.(*build.NoGoError); !ok && importPath != "C" {
+			//import "C" is cgo
 			return nil, fmt.Errorf("fail to get imports(%s): %v", importPath, err)
 		}
 		log.Warn("Getting imports: %v", err)
