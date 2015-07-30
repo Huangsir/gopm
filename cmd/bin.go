@@ -79,16 +79,16 @@ func runBin(ctx *cli.Context) {
 	// Parse package version.
 	info := ctx.Args().First()
 	pkgPath := info
-	n := doc.NewNode(pkgPath, doc.BRANCH, "", true)
+	n := doc.NewNode(pkgPath, doc.BRANCH, "", "", true)
 	if i := strings.Index(info, "@"); i > -1 {
 		pkgPath = info[:i]
 		var err error
-		tp, val, err := validPkgInfo(info[i+1:])
+		tp, val, dwn, err := validPkgInfo(info[i+1:])
 		if err != nil {
 			errors.SetError(err)
 			return
 		}
-		n = doc.NewNode(pkgPath, tp, val, !ctx.Bool("download"))
+		n = doc.NewNode(pkgPath, tp, val, dwn, !ctx.Bool("download"))
 	}
 
 	// Check package name.
@@ -99,7 +99,7 @@ func runBin(ctx *cli.Context) {
 			return
 		}
 		if tmpPath != pkgPath {
-			n = doc.NewNode(tmpPath, n.Type, n.Value, n.IsGetDeps)
+			n = doc.NewNode(tmpPath, n.Type, n.Value, n.DownloadURL, n.IsGetDeps)
 		}
 	}
 

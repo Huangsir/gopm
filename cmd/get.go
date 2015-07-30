@@ -196,7 +196,7 @@ func downloadPackages(target string, ctx *cli.Context, nodes []*doc.Node) (err e
 			// Generate temporary nodes.
 			nodes := make([]*doc.Node, len(imports))
 			for i := range nodes {
-				nodes[i] = doc.NewNode(name, doc.BRANCH, "", !ctx.Bool("download"))
+				nodes[i] = doc.NewNode(name, doc.BRANCH, "", "", !ctx.Bool("download"))
 
 				if gf == nil {
 					continue
@@ -204,7 +204,7 @@ func downloadPackages(target string, ctx *cli.Context, nodes []*doc.Node) (err e
 
 				// Check if user specified the version.
 				if v := gf.MustValue("deps", imports[i]); len(v) > 0 {
-					nodes[i].Type, nodes[i].Value, err = validPkgInfo(v)
+					nodes[i].Type, nodes[i].Value, nodes[i].DownloadURL, err = validPkgInfo(v)
 					if err != nil {
 						return err
 					}
@@ -272,12 +272,12 @@ func getByGopmfile(ctx *cli.Context) error {
 	nodes := make([]*doc.Node, 0, len(imports))
 	for _, name := range imports {
 		name = doc.GetRootPath(name)
-		n := doc.NewNode(name, doc.BRANCH, "", !ctx.Bool("download"))
+		n := doc.NewNode(name, doc.BRANCH, "", "", !ctx.Bool("download"))
 
 		// Check if user specified the version.
 		if v := gf.MustValue("deps", name); len(v) > 0 {
-			n.Type, n.Value, err = validPkgInfo(v)
-			n = doc.NewNode(name, n.Type, n.Value, !ctx.Bool("download"))
+			n.Type, n.Value, n.DownloadURL, err = validPkgInfo(v)
+			n = doc.NewNode(name, n.Type, n.Value, n.DownloadURL, !ctx.Bool("download"))
 		}
 		nodes = append(nodes, n)
 	}
@@ -289,15 +289,15 @@ func getByPaths(ctx *cli.Context) error {
 	nodes := make([]*doc.Node, 0, len(ctx.Args()))
 	for _, info := range ctx.Args() {
 		pkgPath := info
-		n := doc.NewNode(pkgPath, doc.BRANCH, "", !ctx.Bool("download"))
+		n := doc.NewNode(pkgPath, doc.BRANCH, "", "", !ctx.Bool("download"))
 
 		if i := strings.Index(info, "@"); i > -1 {
 			pkgPath = info[:i]
-			tp, val, err := validPkgInfo(info[i+1:])
+			tp, val, dwn, err := validPkgInfo(info[i+1:])
 			if err != nil {
 				return err
 			}
-			n = doc.NewNode(pkgPath, tp, val, !ctx.Bool("download"))
+			n = doc.NewNode(pkgPath, tp, val, dwn, !ctx.Bool("download"))
 		}
 
 		// Check package name.
@@ -307,7 +307,7 @@ func getByPaths(ctx *cli.Context) error {
 				return err
 			}
 			if tmpPath != pkgPath {
-				n = doc.NewNode(tmpPath, n.Type, n.Value, n.IsGetDeps)
+				n = doc.NewNode(tmpPath, n.Type, n.Value, n.DownloadURL, n.IsGetDeps)
 			}
 		}
 		nodes = append(nodes, n)

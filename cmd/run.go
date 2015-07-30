@@ -53,24 +53,31 @@ func valSuffix(val string) string {
 }
 
 // validPkgInfo checks if the information of the package is valid.
-func validPkgInfo(info string) (doc.RevisionType, string, error) {
+func validPkgInfo(info string) (doc.RevisionType, string, string, error) {
 	if len(info) == 0 {
-		return doc.BRANCH, "", nil
+		return doc.BRANCH, "", "", nil
 	}
 
-	infos := strings.Split(info, ":")
-	tp := doc.RevisionType(infos[0])
-	val := infos[1]
+	var tp doc.RevisionType
+	var val string
+	var dwnUrl string
 
-	if len(infos) == 2 {
-		switch tp {
-		case doc.BRANCH, doc.COMMIT, doc.TAG:
-		default:
-			return "", "", fmt.Errorf("invalid node type: %v", tp)
+	infoArr := strings.Split(info, " ")
+	for _, inf := range infoArr {
+		if inf = strings.TrimSpace(inf); inf == "" {
+			continue
 		}
-		return tp, val, nil
+		if strings.Contains(inf, "://") {
+			dwnUrl = inf
+		} else if strings.Contains(inf, ":") {
+			kv := strings.Split(inf, ":")
+			tp = doc.RevisionType(kv[0])
+			val = kv[1]
+		} else {
+			return "", "", "", fmt.Errorf("cannot parse dependency version: %v", info)
+		}
 	}
-	return "", "", fmt.Errorf("cannot parse dependency version: %v", info)
+	return tp, val, dwnUrl, nil
 }
 
 func linkVendors(ctx *cli.Context, optTarget string) error {
@@ -107,7 +114,7 @@ func linkVendors(ctx *cli.Context, optTarget string) error {
 	stack := make([]*doc.Pkg, len(imports))
 	for i, name := range imports {
 		name := doc.GetRootPath(name)
-		tp, val, err := validPkgInfo(gf.MustValue("deps", name))
+		tp, val, _, err := validPkgInfo(gf.MustValue("deps", name))
 		if err != nil {
 			return fmt.Errorf("fail to validate package(%s): %v", name, err)
 		}
@@ -162,7 +169,7 @@ func linkVendors(ctx *cli.Context, optTarget string) error {
 		}
 		for _, name := range imports {
 			name := doc.GetRootPath(name)
-			tp, val, err := validPkgInfo(gf.MustValue("deps", name))
+			tp, val, _, err := validPkgInfo(gf.MustValue("deps", name))
 			if err != nil {
 				return fmt.Errorf("fail to validate package(%s): %v", name, err)
 			}

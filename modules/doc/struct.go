@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
 	"regexp"
@@ -126,7 +127,7 @@ type Node struct {
 // NewNode initializes and returns a new Node representation.
 func NewNode(
 	importPath string,
-	tp RevisionType, val string,
+	tp RevisionType, val string, dwn string,
 	isGetDeps bool) *Node {
 
 	n := &Node{
@@ -136,8 +137,11 @@ func NewNode(
 			Type:       tp,
 			Value:      val,
 		},
-		DownloadURL: importPath,
+		DownloadURL: dwn,
 		IsGetDeps:   isGetDeps,
+	}
+	if n.DownloadURL == "" {
+		n.DownloadURL = importPath
 	}
 	n.InstallPath = path.Join(setting.InstallRepoPath, n.RootPath) + n.ValSuffix()
 	n.InstallGopath = path.Join(setting.InstallGopath, n.RootPath)
@@ -400,8 +404,25 @@ func init() {
 	zip.Verbose = false
 }
 
+func CustomDownloadURL(addr string) (u *url.URL, err error) {
+	if strings.Contains(addr, "://") {
+		u, err = url.Parse(addr)
+	}
+	return
+}
+
 // DownloadGopm downloads remote package from gopm registry.
 func (n *Node) DownloadGopm(ctx *cli.Context) error {
+	// Custom DownloadURL
+	if u, _ := CustomDownloadURL(n.DownloadURL); u != nil {
+		switch u.Scheme {
+		case "git+ssh", "git+https", "git+http":
+			return n.DownloadByGit(ctx, u)
+		case "go+get":
+			return n.DownloadByGoGet(ctx, u)
+		}
+	}
+
 	// Localsize repository
 	for _, localize := range setting.Localizes {
 		if strings.HasPrefix(n.RootPath, localize.Domain) {
@@ -420,15 +441,6 @@ func (n *Node) DownloadGopm(ctx *cli.Context) error {
 			var apiErr ApiError
 			if err = json.NewDecoder(resp.Body).Decode(&apiErr); err != nil {
 				return fmt.Errorf("fail to decode response JSON: %v", err)
-			}
-			if apiErr.Error == "cannot match any service" {
-				// Maybe this is a local repository.
-				localRepo := &goconfig.Localize{
-					Domain:    n.RootPath[:strings.Index(n.RootPath, "/")],
-					RootDepth: 3,
-					Download:  "git+https",
-				}
-				return n.DownloadLocalRepository(ctx, localRepo)
 			}
 			return errors.New(apiErr.Error)
 		}
@@ -508,9 +520,74 @@ func (n *Node) DownloadLocalRepository(ctx *cli.Context, localize *goconfig.Loca
 	os.MkdirAll(downBaseDir, os.ModePerm)
 	_, stderr, err := base.ExecCmdDir(downBaseDir, "git", "clone", repoAddr)
 	if err != nil {
-		log.Error("", "Error occurs when 'git clone'")
-		log.Error("", "\t"+stderr)
+		//log.Error("", "Error occurs when 'git clone'")
+		//log.Error("", "\t"+stderr)
+		log.Error("Error occurs when 'git checkout" + n.Value + "'")
+		log.Error("\t" + stderr)
 		return errors.New(stderr)
 	}
+	return nil
+}
+
+func (n *Node) DownloadByGit(ctx *cli.Context, u *url.URL) error {
+	var remoteAddr string
+	switch u.Scheme {
+	case "git+ssh":
+		remoteAddr = fmt.Sprintf("git@%s:%s.git", u.Host, u.Path)
+	case "git+http":
+		remoteAddr = fmt.Sprintf("http://%s/%s", u.Host, u.Path)
+	case "git+https":
+		remoteAddr = fmt.Sprintf("https://%s/%s", u.Host, u.Path)
+	}
+	baseDir := path.Dir(n.InstallPath)
+	os.MkdirAll(baseDir, os.ModePerm)
+	_, stderr, err := base.ExecCmdDir(baseDir, "git", "clone", remoteAddr, n.InstallPath)
+	if err != nil {
+		log.Error("Error occurs when 'git clone " + remoteAddr + "'")
+		log.Error("\t" + stderr)
+		return errors.New(stderr)
+	}
+	if !n.IsEmptyVal() {
+		base.ExecCmdDir(n.InstallPath, "git", "checkout", n.Value)
+		if err != nil {
+			log.Error("Error occurs when 'git checkout" + n.Value + "'")
+			log.Error("\t" + stderr)
+			return errors.New(stderr)
+		}
+	}
+	return nil
+}
+
+func (n *Node) DownloadByGoGet(ctx *cli.Context, u *url.URL) error {
+	baseDir := path.Join(setting.HomeDir, ".gopm/temp/goget")
+	os.MkdirAll(baseDir, os.ModePerm)
+	defer func() {
+		os.RemoveAll(baseDir)
+	}()
+
+	oriGopath := os.Getenv("GOPATH")
+	os.Setenv("GOPATH", baseDir)
+	defer func() {
+		os.Setenv("GOPATH", oriGopath)
+	}()
+
+	log.Debug("RUN 'go get %s'", n.RootPath)
+	_, stderr, err := base.ExecCmdDir(baseDir, "go", "get", n.RootPath)
+	if err != nil {
+		log.Error("Error occurs when 'go get" + n.RootPath + "'")
+		log.Error("\t" + stderr)
+		return errors.New(stderr)
+	}
+	tmpPath := path.Join(baseDir, "src", n.RootPath)
+	if !n.IsEmptyVal() {
+		base.ExecCmdDir(tmpPath, "git", "checkout", n.Value)
+		if err != nil {
+			log.Error("Error occurs when 'git checkout" + n.Value + "'")
+			log.Error("\t" + stderr)
+			return errors.New(stderr)
+		}
+	}
+	os.MkdirAll(path.Dir(n.InstallPath), os.ModePerm)
+	os.Rename(tmpPath, n.InstallPath)
 	return nil
 }
