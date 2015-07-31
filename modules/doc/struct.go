@@ -567,6 +567,7 @@ func (n *Node) DownloadByGoGet(ctx *cli.Context, u *url.URL) error {
 
 	oriGopath := os.Getenv("GOPATH")
 	os.Setenv("GOPATH", baseDir)
+	fmt.Println(baseDir)
 	defer func() {
 		os.Setenv("GOPATH", oriGopath)
 	}()
